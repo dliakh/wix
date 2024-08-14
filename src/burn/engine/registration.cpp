@@ -13,6 +13,7 @@ const LPCWSTR REGISTRY_BUNDLE_ESTIMATED_SIZE = L"EstimatedSize";
 const LPCWSTR REGISTRY_BUNDLE_INSTALL_DATE = L"InstallDate";
 const LPCWSTR REGISTRY_BUNDLE_PUBLISHER = L"Publisher";
 const LPCWSTR REGISTRY_BUNDLE_HELP_LINK = L"HelpLink";
+const LPCWSTR REGISTRY_BUNDLE_INSTALL_LOCATION = L"InstallLocation";
 const LPCWSTR REGISTRY_BUNDLE_HELP_TELEPHONE = L"HelpTelephone";
 const LPCWSTR REGISTRY_BUNDLE_URL_INFO_ABOUT = L"URLInfoAbout";
 const LPCWSTR REGISTRY_BUNDLE_URL_UPDATE_INFO = L"URLUpdateInfo";
@@ -202,6 +203,11 @@ extern "C" HRESULT RegistrationParseFromXml(
         hr = XmlGetAttributeEx(pixnArpNode, L"AboutUrl", &pRegistration->sczAboutUrl);
         ExitOnOptionalXmlQueryFailure(hr, fFoundXml, "Failed to get @AboutUrl.");
 
+        // @InstallLocation
+        hr = XmlGetAttributeEx(pixnArpNode, L"InstallLocation", &pRegistration->sczInstallLocation);
+        ExitOnOptionalXmlQueryFailure(hr, fFoundXml, "Failed to get @InstallLocation");
+        
+
         // @UpdateUrl
         hr = XmlGetAttributeEx(pixnArpNode, L"UpdateUrl", &pRegistration->sczUpdateUrl);
         ExitOnOptionalXmlQueryFailure(hr, fFoundXml, "Failed to get @UpdateUrl.");
@@ -348,6 +354,7 @@ extern "C" void RegistrationUninitialize(
     ReleaseStr(pRegistration->sczHelpLink);
     ReleaseStr(pRegistration->sczHelpTelephone);
     ReleaseStr(pRegistration->sczAboutUrl);
+    ReleaseStr(pRegistration->sczInstallLocation);
     ReleaseStr(pRegistration->sczUpdateUrl);
     ReleaseStr(pRegistration->sczParentDisplayName);
     ReleaseStr(pRegistration->sczComments);
@@ -715,6 +722,17 @@ extern "C" HRESULT RegistrationSessionBegin(
     {
         hr = RegWriteString(hkRegistration, REGISTRY_BUNDLE_URL_INFO_ABOUT, pRegistration->sczAboutUrl);
         ExitOnFailure(hr, "Failed to write %ls value.", REGISTRY_BUNDLE_URL_INFO_ABOUT);
+    }
+
+    // InstallLocation
+    if (pRegistration->sczInstallLocation)
+    {
+        LPWSTR sczFormatted = NULL;
+        hr = VariableGetFormatted(pVariables, pRegistration->sczInstallLocation, &sczFormatted, FALSE);
+        ExitOnRootFailure(hr, "Failed to format value '%ls' for registration property '%ls'", pRegistration->sczInstallLocation, REGISTRY_BUNDLE_INSTALL_LOCATION);
+        hr = RegWriteString(hkRegistration, REGISTRY_BUNDLE_INSTALL_LOCATION, sczFormatted);
+        ExitOnFailure(hr, "Failed to write %ls value.", REGISTRY_BUNDLE_INSTALL_LOCATION);
+        StrSecureZeroFreeString(sczFormatted);
     }
 
     // URLUpdateInfo, provided by UI

@@ -158,6 +158,7 @@ typedef struct _BURN_REGISTRATION
     BOOL fDetectedForeignProviderKeyBundleId;
     LPWSTR sczDetectedProviderKeyBundleId;
     LPWSTR sczBundlePackageAncestors;
+    LPWSTR sczInstallLocation;
 } BURN_REGISTRATION;
 
 
